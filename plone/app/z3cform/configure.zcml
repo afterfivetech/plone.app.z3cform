@@ -150,6 +150,14 @@
       template="templates/relateditems_display.pt"
       />
 
+  <z3c:widgetTemplate
+      mode="display"
+      field="*"
+      widget=".interfaces.IAjaxSelectWidget"
+      layer=".interfaces.IPloneFormLayer"
+      template="templates/ajaxselect_display.pt"
+      />
+
   <browser:page
       name="z3cform_validate_field"
       for="*"
