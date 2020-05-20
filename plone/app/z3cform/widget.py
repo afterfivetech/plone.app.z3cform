@@ -54,6 +54,7 @@ from z3c.form.widget import Widget
 from zope.component import adapter
 from zope.component import ComponentLookupError
 from zope.component import getUtility
+from zope.component import queryUtility
 from zope.component.hooks import getSite
 from zope.i18n import translate
 from zope.interface import implementer
@@ -62,6 +63,7 @@ from zope.schema.interfaces import IBool
 from zope.schema.interfaces import IChoice
 from zope.schema.interfaces import ICollection
 from zope.schema.interfaces import ISequence
+from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
@@ -422,6 +424,30 @@ class AjaxSelectWidget(BaseWidget, z3cform_TextWidget):
             args['pattern_options']['allowNewItems'] = allowNewItems
 
         return args
+
+    def _view_context(self):
+        view_context = get_widget_form(self)
+        # For EditForms and non-Forms (in tests), the vocabulary is looked
+        # up on the context, otherwise on the view
+        if IEditForm.providedBy(view_context):
+            if self.is_subform_widget():
+                view_context = self.form.parentForm.context
+            elif not ISimpleItem.providedBy(self.context):
+                view_context = self.form.context
+            else:
+                view_context = self.context
+        elif not IForm.providedBy(view_context):
+            view_context = self.context
+        return view_context
+
+    def get_vocabulary(self):
+        if self.vocabulary:
+            factory = queryUtility(
+                IVocabularyFactory,
+                self.vocabulary,
+            )
+            if factory:
+                return factory(self._view_context())
 
     def display_items(self):
         if self.value:
